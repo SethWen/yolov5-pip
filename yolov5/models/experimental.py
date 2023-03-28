@@ -9,7 +9,6 @@ import torch
 import torch.nn as nn
 
 from yolov5.models.common import Conv
-from yolov5.utils.downloads import attempt_download
 from yolov5.utils.general import yolov5_in_syspath
 
 
@@ -96,9 +95,11 @@ def attempt_load(weights, map_location=None, inplace=True, fuse=True):
     model = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
         with yolov5_in_syspath():
-            ckpt = torch.load(attempt_download(w), map_location=map_location)  # load
+            ckpt = torch.load(w, map_location=map_location)  # load
         ckpt = (ckpt.get('ema') or ckpt['model']).float()  # FP32 model
         model.append(ckpt.fuse().eval() if fuse else ckpt.eval())  # fused or un-fused model in eval mode
+
+        print('everything is ok ...')
 
     # Compatibility updates
     for m in model.modules():

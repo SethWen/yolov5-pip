@@ -1,14 +1,11 @@
 from pathlib import Path
 
 from yolov5.models.common import AutoShape, DetectMultiBackend
-from yolov5.models.experimental import attempt_load
-from yolov5.models.yolo import Model
-from yolov5.utils.general import LOGGER, logging, yolov5_in_syspath
-from yolov5.utils.google_utils import attempt_download
+from yolov5.utils.general import LOGGER, logging
 from yolov5.utils.torch_utils import torch
 
 
-def load_model(model_path, device=None, autoshape=True, verbose=False):
+def load_model(model, model_type, device=None, autoshape=True, verbose=False):
     """
     Creates a specified YOLOv5 model
 
@@ -34,10 +31,10 @@ def load_model(model_path, device=None, autoshape=True, verbose=False):
     elif type(device) is str:
         device = torch.device(device)
 
-    model = DetectMultiBackend(model_path, device=device)
+    model = DetectMultiBackend(weights=model, weights_type=model_type, device=device)
 
     if autoshape:
-        model = AutoShape(model)  # for file/URI/PIL/cv2/np inputs and NMS
+        model = AutoShape(model, model_type)  # for file/URI/PIL/cv2/np inputs and NMS
     return model.to(device)
 
 
