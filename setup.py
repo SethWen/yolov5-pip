@@ -24,14 +24,14 @@ def get_version():
 
 
 setuptools.setup(
-    name="yolov5",
+    name="yolov5-thin",
     version=get_version(),
     author="",
     license="GPL",
     description="Packaged version of the Yolov5 object detector",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
-    url="https://github.com/fcakyon/yolov5-pip",
+    url="https://github.com/SethWen/yolov5-pip.git",
     packages=setuptools.find_packages(exclude=["tests"]),
     python_requires=">=3.6",
     install_requires=get_requirements(),
@@ -56,8 +56,4 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Image Recognition",
     ],
     keywords="machine-learning, deep-learning, ml, pytorch, YOLO, object-detection, vision, YOLOv3, YOLOv4, YOLOv5",
-    entry_points={'console_scripts': [
-        "yolov5=yolov5.cli:app",
-        ],
-                  }
 )

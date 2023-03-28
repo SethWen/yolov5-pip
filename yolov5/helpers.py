@@ -37,6 +37,31 @@ def load_model(model, model_type, device=None, autoshape=True, verbose=False):
         model = AutoShape(model, model_type)  # for file/URI/PIL/cv2/np inputs and NMS
     return model.to(device)
 
+class YOLOv5:
+    def __init__(self, model, model_type, device=None, load_on_init=True):
+        self.model = model
+        self.model_type = model_type
+        self.device = device
+        if load_on_init:
+            self.model = load_model(model=self.model, model_type=model_type, device=device, autoshape=True)
+        else:
+            self.model = None
+
+    def load_model(self):
+        """
+        Load yolov5 weight.
+        """
+        self.model = load_model(model=self.model, model_type=self.model_type, device=self.device, autoshape=True)
+
+    def predict(self, image_list, size=640, augment=False):
+        """
+        Perform yolov5 prediction using loaded model weights.
+
+        Returns results as a yolov5.models.common.Detections object.
+        """
+        assert self.model is not None, "before predict, you need to call .load_model()"
+        results = self.model(imgs=image_list, size=size, augment=augment)
+        return results
 
 if __name__ == "__main__":
     model_path = "yolov5/weights/yolov5s.pt"
