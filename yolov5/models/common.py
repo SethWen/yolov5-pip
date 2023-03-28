@@ -52,8 +52,6 @@ def attempt_load(weights, map_location=None, inplace=True, fuse=True):
         ckpt = (ckpt.get('ema') or ckpt['model']).float()  # FP32 model
         model.append(ckpt.fuse().eval() if fuse else ckpt.eval())  # fused or un-fused model in eval mode
 
-        print('everything is ok ...')
-
     # Compatibility updates
     for m in model.modules():
         t = type(m)
@@ -71,7 +69,6 @@ def attempt_load(weights, map_location=None, inplace=True, fuse=True):
     if len(model) == 1:
         return model[-1]  # return model
     else:
-        print(f'Ensemble created with {weights}\n')
         for k in 'names', 'nc', 'yaml':
             setattr(model, k, getattr(model[0], k))
         model.stride = model[torch.argmax(torch.tensor([m.stride.max() for m in model])).int()].stride  # max stride
@@ -344,11 +341,10 @@ class DetectMultiBackend(nn.Module):
             model = attempt_load(weights, map_location=device)
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
-            print('-------------->', names)
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
         elif weights_type == 'onnx':  # ONNX Runtime
-            LOGGER.info(f'Loading for ONNX Runtime inference...')
+            LOGGER.info('Loading for ONNX Runtime inference...')
             cuda = torch.cuda.is_available()
             check_requirements(('onnx', 'onnxruntime-gpu' if cuda else 'onnxruntime'))
             import onnxruntime
