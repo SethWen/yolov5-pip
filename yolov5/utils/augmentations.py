@@ -9,7 +9,6 @@ import random
 import cv2
 import numpy as np
 from yolov5.utils.general import resample_segments, segment2box
-from yolov5.utils.metrics import bbox_ioa
 
 
 def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
@@ -96,12 +95,6 @@ def random_perspective(im,
         else:  # affine
             im = cv2.warpAffine(im, M[:2], dsize=(width, height), borderValue=(114, 114, 114))
 
-    # Visualize
-    # import matplotlib.pyplot as plt
-    # ax = plt.subplots(1, 2, figsize=(12, 6))[1].ravel()
-    # ax[0].imshow(im[:, :, ::-1])  # base
-    # ax[1].imshow(im2[:, :, ::-1])  # warped
-
     # Transform label coordinates
     n = len(targets)
     if n:
@@ -139,57 +132,6 @@ def random_perspective(im,
         targets[:, 1:5] = new[i]
 
     return im, targets
-
-
-def copy_paste(im, labels, segments, p=0.5):
-    # Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)
-    n = len(segments)
-    if p and n:
-        h, w, c = im.shape  # height, width, channels
-        im_new = np.zeros(im.shape, np.uint8)
-        for j in random.sample(range(n), k=round(p * n)):
-            l, s = labels[j], segments[j]
-            box = w - l[3], l[2], w - l[1], l[4]
-            ioa = bbox_ioa(box, labels[:, 1:5])  # intersection over area
-            if (ioa < 0.30).all():  # allow 30% obscuration of existing labels
-                labels = np.concatenate((labels, [[l[0], *box]]), 0)
-                segments.append(np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1))
-                cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
-
-        result = cv2.bitwise_and(src1=im, src2=im_new)
-        result = cv2.flip(result, 1)  # augment segments (flip left-right)
-        i = result > 0  # pixels to replace
-        # i[:, :] = result.max(2).reshape(h, w, 1)  # act over ch
-        im[i] = result[i]  # cv2.imwrite('debug.jpg', im)  # debug
-
-    return im, labels, segments
-
-
-def cutout(im, labels, p=0.5):
-    # Applies image cutout augmentation https://arxiv.org/abs/1708.04552
-    if random.random() < p:
-        h, w = im.shape[:2]
-        scales = [0.5] * 1 + [0.25] * 2 + [0.125] * 4 + [0.0625] * 8 + [0.03125] * 16  # image size fraction
-        for s in scales:
-            mask_h = random.randint(1, int(h * s))  # create random masks
-            mask_w = random.randint(1, int(w * s))
-
-            # box
-            xmin = max(0, random.randint(0, w) - mask_w // 2)
-            ymin = max(0, random.randint(0, h) - mask_h // 2)
-            xmax = min(w, xmin + mask_w)
-            ymax = min(h, ymin + mask_h)
-
-            # apply random color mask
-            im[ymin:ymax, xmin:xmax] = [random.randint(64, 191) for _ in range(3)]
-
-            # return unobscured labels
-            if len(labels) and s > 0.03:
-                box = np.array([xmin, ymin, xmax, ymax], dtype=np.float32)
-                ioa = bbox_ioa(box, labels[:, 1:5])  # intersection over area
-                labels = labels[ioa < 0.60]  # remove >60% obscured labels
-
-    return labels
 
 
 def mixup(im, labels, im2, labels2):
