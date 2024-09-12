@@ -37,7 +37,7 @@ setuptools.setup(
     install_requires=get_requirements(),
     extras_require={"tests": ["pytest"]},
     include_package_data=True,
-    options={'bdist_wheel':{'python_tag':'py36.py37.py38'}},
+    options={'bdist_wheel':{'python_tag':'py3'}},
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: GNU General Public License (GPL)",
@@ -45,9 +45,6 @@ setuptools.setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Education",
